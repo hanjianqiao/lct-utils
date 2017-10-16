@@ -1,7 +1,11 @@
 #include <linux/module.h>
 #include <linux/kthread.h>
 
-static struct task_struct * kcpu_task;
+static int numOfTasks = 4;
+module_param(numOfTasks, int, 0);
+MODULE_PARM_DESC(numOfTasks, "Number of Tasks");
+
+static struct task_struct ** kcpu_tasks;
 
 static int kcpu_task_func(void *data){
     long long loop = 0, count = 0;
@@ -19,22 +23,31 @@ static int kcpu_task_func(void *data){
 
 static int __init kcpu_init(void)
 {
-    kcpu_task = kthread_run(kcpu_task_func, NULL, "kcpu_task_func");
-    if (!IS_ERR(kcpu_task))
-    {
-        printk("kthread_create rtc_worker done\n");
-    }
-    else
-    {
-        printk("kthread_create rtc_worker error\n");
+    int i;
+    for(i = 0; i < numOfTasks; i++){
+        kcpu_tasks[i] = kthread_run(kcpu_task_func, NULL, "kcpu_task_func_%d", i);
+        if (!IS_ERR(kcpu_tasks[i]))
+        {
+            printk("kthread_create kcpu task %d done\n", i);
+        }
+        else
+        {
+            printk("kthread_create kcpu task %d error\n", i);
+        }
     }
     return 0;
 }
  
 static void __exit kcpu_exit(void)
 {
-    if(kcpu_task){
-        kthread_stop(kcpu_task);
+    int i;
+    for(i = 0; i < numOfTasks; i++){
+        if(kcpu_tasks[i]){
+            kthread_stop(kcpu_tasks[i]);
+            printk("kcup task %d stopped\n", i);
+        }else{
+            printk("kcup task %d already stopped\n", i);
+        }
     }
 }
  
