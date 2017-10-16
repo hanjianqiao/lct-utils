@@ -27,7 +27,7 @@ static int __init kcpu_init(void)
     int i;
     kcpu_tasks = (struct task_struct **)kmalloc(sizeof(struct task_struct *) * numOfTasks, GFP_KERNEL);
     for(i = 0; i < numOfTasks; i++){
-        kcpu_tasks[i] = kthread_run(kcpu_task_func, NULL, "kcpu_task_func_%d", i);
+        kcpu_tasks[i] = kthread_run(kcpu_task_func, NULL, "kcpu_%d", i);
         if (!IS_ERR(kcpu_tasks[i]))
         {
             printk("kthread_create kcpu task %d done\n", i);
