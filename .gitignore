@@ -70,3 +70,7 @@ fastlane/test_output
 *.out
 *.o
 *.a
+
+# mac files
+.DS_Store
+
