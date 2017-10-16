@@ -1,5 +1,6 @@
 #include <linux/module.h>
 #include <linux/kthread.h>
+#include <linux/slab.h>
 
 static int numOfTasks = 4;
 module_param(numOfTasks, int, 0);
@@ -24,7 +25,7 @@ static int kcpu_task_func(void *data){
 static int __init kcpu_init(void)
 {
     int i;
-    kcpu_tasks = (task_struct **)kmalloc(sizeof(task_struct *) * numOfTasks);
+    kcpu_tasks = (struct task_struct **)kmalloc(sizeof(struct task_struct *) * numOfTasks, GFP_KERNEL);
     for(i = 0; i < numOfTasks; i++){
         kcpu_tasks[i] = kthread_run(kcpu_task_func, NULL, "kcpu_task_func_%d", i);
         if (!IS_ERR(kcpu_tasks[i]))
@@ -38,7 +39,7 @@ static int __init kcpu_init(void)
     }
     return 0;
 }
- 
+
 static void __exit kcpu_exit(void)
 {
     int i;
@@ -52,10 +53,10 @@ static void __exit kcpu_exit(void)
     }
     kfree(kcpu_tasks);
 }
- 
+
 module_init(kcpu_init);
 module_exit(kcpu_exit);
- 
+
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("KCPU Module");
 MODULE_AUTHOR("hanjianqiao");
