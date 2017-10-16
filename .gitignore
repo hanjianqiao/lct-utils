@@ -74,3 +74,11 @@ fastlane/test_output
 # mac files
 .DS_Store
 
+# kernel module files
+.*.cmd
+.tmp_versions
+Module.symvers
+*.ko
+*.mod.c
+modules.order
+
