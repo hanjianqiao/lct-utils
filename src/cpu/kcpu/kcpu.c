@@ -24,6 +24,7 @@ static int kcpu_task_func(void *data){
 static int __init kcpu_init(void)
 {
     int i;
+    kcpu_tasks = (task_struct **)kmalloc(sizeof(task_struct *) * numOfTasks);
     for(i = 0; i < numOfTasks; i++){
         kcpu_tasks[i] = kthread_run(kcpu_task_func, NULL, "kcpu_task_func_%d", i);
         if (!IS_ERR(kcpu_tasks[i]))
@@ -49,6 +50,7 @@ static void __exit kcpu_exit(void)
             printk("kcup task %d already stopped\n", i);
         }
     }
+    kfree(kcpu_tasks);
 }
  
 module_init(kcpu_init);
