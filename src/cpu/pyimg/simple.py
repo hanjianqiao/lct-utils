@@ -1,9 +1,14 @@
 from PIL import Image
 
 infile = 'SongHyekyo.jpg'
-outfile = 'generated-0.jpg'
+outfile = 'generated-'
+extension = '.jpg'
 
+count = 0
 
 while(True):
-    Image.open(infile).convert('L').save(outfile)
+    print('image process %d' % (count))
+    for i in range(1000):
+        Image.open(infile).convert('L').save(outfile + str(count) + extension)
+    count += 1
 
