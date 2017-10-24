@@ -21,7 +21,7 @@ int main(){
     cout << "ret = " << ret << endl;
 
     cout << "chomod ";
-    ret = chmod(PATH, 0x00755);
+    ret = chmod(PATH,0755);
     if(ret){
         cout << "failed: " << ret << endl;
     }else{
