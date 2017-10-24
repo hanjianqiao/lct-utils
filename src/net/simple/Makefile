@@ -1,5 +1,12 @@
+# Makefile
 
-default: tcp_server tcp_client udp_server udp_client
+default:
+	@echo 'Usage: make all or make all_clean'
+
+all: tcp_server tcp_client udp_server udp_client
+
+all_clean:
+	rm *.out
 
 tcp_server: tcp_server.c
 	gcc tcp_server.c -o tcp_server.out
