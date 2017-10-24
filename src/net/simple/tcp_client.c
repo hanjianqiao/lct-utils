@@ -1,63 +1,80 @@
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <netdb.h>
+/* 
+ * tcpclient.c - A simple TCP client
+ * usage: tcpclient <host> <port>
+ */
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
-#include <errno.h>
-#include <arpa/inet.h> 
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h> 
 
-int main(int argc, char *argv[])
-{
-    int sockfd = 0, n = 0;
-    char recvBuff[1024];
-    struct sockaddr_in serv_addr; 
+#define BUFSIZE 1024
 
-    if(argc != 2)
-    {
-        printf("\n Usage: %s <ip of server> \n",argv[0]);
-        return 1;
-    } 
+/* 
+ * error - wrapper for perror
+ */
+void error(char *msg) {
+    perror(msg);
+    exit(0);
+}
 
-    memset(recvBuff, '0',sizeof(recvBuff));
-    if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        printf("\n Error : Could not create socket \n");
-        return 1;
-    } 
+int main(int argc, char **argv) {
+    int sockfd, portno, n;
+    struct sockaddr_in serveraddr;
+    struct hostent *server;
+    char *hostname;
+    char buf[BUFSIZE];
 
-    memset(&serv_addr, '0', sizeof(serv_addr)); 
+    /* check command line arguments */
+    if (argc != 3) {
+       fprintf(stderr,"usage: %s <hostname> <port>\n", argv[0]);
+       exit(0);
+    }
+    hostname = argv[1];
+    portno = atoi(argv[2]);
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(5000); 
+    /* socket: create the socket */
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0) 
+        error("ERROR opening socket");
 
-    if(inet_pton(AF_INET, argv[1], &serv_addr.sin_addr)<=0)
-    {
-        printf("\n inet_pton error occured\n");
-        return 1;
-    } 
+    /* gethostbyname: get the server's DNS entry */
+    server = gethostbyname(hostname);
+    if (server == NULL) {
+        fprintf(stderr,"ERROR, no such host as %s\n", hostname);
+        exit(0);
+    }
 
-    if( connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-    {
-       printf("\n Error : Connect Failed \n");
-       return 1;
-    } 
+    /* build the server's Internet address */
+    bzero((char *) &serveraddr, sizeof(serveraddr));
+    serveraddr.sin_family = AF_INET;
+    bcopy((char *)server->h_addr, 
+      (char *)&serveraddr.sin_addr.s_addr, server->h_length);
+    serveraddr.sin_port = htons(portno);
 
-    while ( (n = read(sockfd, recvBuff, sizeof(recvBuff)-1)) > 0)
-    {
-        recvBuff[n] = 0;
-        if(fputs(recvBuff, stdout) == EOF)
-        {
-            printf("\n Error : Fputs error\n");
-        }
-    } 
+    /* connect: create a connection with the server */
+    if (connect(sockfd, &serveraddr, sizeof(serveraddr)) < 0) 
+      error("ERROR connecting");
 
-    if(n < 0)
-    {
-        printf("\n Read error \n");
-    } 
+    /* get message line from the user */
+    printf("Please enter msg: ");
+    bzero(buf, BUFSIZE);
+    fgets(buf, BUFSIZE, stdin);
 
+    /* send the message line to the server */
+    n = write(sockfd, buf, strlen(buf));
+    if (n < 0) 
+      error("ERROR writing to socket");
+
+    /* print the server's reply */
+    bzero(buf, BUFSIZE);
+    n = read(sockfd, buf, BUFSIZE);
+    if (n < 0) 
+      error("ERROR reading from socket");
+    printf("Echo from server: %s", buf);
+    close(sockfd);
     return 0;
 }
