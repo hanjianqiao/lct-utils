@@ -8,10 +8,12 @@
 
 typedef void (*sighandler_t)(int);
 
+volatile int should_stop;
+
 void sig_handler(int sigNum){
   printf("get signal %d\n", sigNum);
   if(sigNum == SIGINT){
-    exit(0);
+    should_stop = 1;
   }
 }
 
@@ -28,6 +30,8 @@ int main(int argc, char **argv){
     printf("Usage: %s cmd\n", argv[0]);
     return 0;
   }
+
+  should_stop = 0;
 
   if(pthread_create(&thread, NULL, &thread_task, NULL)){
     printf("Error creating thread\n");
@@ -68,5 +72,6 @@ int main(int argc, char **argv){
     default:
       printf("Error arg1: %s\n", argv[1]);
   }
-  while(1);
+  printf("press ctrl-c to exit\n");
+  while(!should_stop);
 }
