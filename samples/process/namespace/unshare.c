@@ -9,6 +9,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+/* It's new, glibc may not have this */
+
+#ifndef CLONE_NEWCGROUP
+    #define CLONE_NEWCGROUP 0x02000000
+#endif
+
 /* A simple error-handling function: print an error message based
   on the value in 'errno' and terminate the calling process */
 
@@ -26,6 +32,7 @@ usage(char *pname)
    fprintf(stderr, "    -p   unshare PID namespace\n");
    fprintf(stderr, "    -u   unshare UTS namespace\n");
    fprintf(stderr, "    -U   unshare user namespace\n");
+   fprintf(stderr, "    -C   unshare cgroup namespace\n");
    exit(EXIT_FAILURE);
 }
 
@@ -36,7 +43,7 @@ main(int argc, char *argv[])
 
    flags = 0;
 
-   while ((opt = getopt(argc, argv, "imnpuU")) != -1) {
+   while ((opt = getopt(argc, argv, "imnpuUC")) != -1) {
        switch (opt) {
        case 'i': flags |= CLONE_NEWIPC;        break;
        case 'm': flags |= CLONE_NEWNS;         break;
@@ -44,6 +51,7 @@ main(int argc, char *argv[])
        case 'p': flags |= CLONE_NEWPID;        break;
        case 'u': flags |= CLONE_NEWUTS;        break;
        case 'U': flags |= CLONE_NEWUSER;       break;
+       case 'C': flags |= CLONE_NEWCGROUP;       break;
        default:  usage(argv[0]);
        }
    }
